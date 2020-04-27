@@ -27,8 +27,8 @@ if __name__ == '__main__':
     # Sleep for 3Sec to redirect  to next page and 3Sec to load page source
     print('Redirecting to AEDC page...\n')
     time.sleep(3)
-    next_page = browser.page_source # Transaction detail page
-    time.sleep(3)
+    # next_page = browser.page_source # Transaction detail page
+    # time.sleep(3)
 
     # Meter and buyer info
     parser = argparse.ArgumentParser(description='Electric bill amount')
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 
     """NOTE: WIll put transaction detail in CSV in future update """
 
-    # Continue to next page for billing
+    """Billing Page"""
     amount = browser.find_element_by_class_name('btn-warning')
     amount.click()
 
@@ -66,7 +66,7 @@ if __name__ == '__main__':
     bill.click()
     print('Loading billing modal...\n')
 
-    # Switch to HTML iframe and load iframe element into view
+    # Switch to checkout iframe and load iframe element into view
     browser.switch_to.frame('checkout')
     wait = WebDriverWait(browser, 10)
 
@@ -86,6 +86,52 @@ if __name__ == '__main__':
     cvv.clear()
     cvv.send_keys(os.environ.get('cvv'))
 
-    print('\tSubmitting form...')
+    print('\tSubmitting form...\n')
     submit_button = wait.until(EC.visibility_of_element_located((By.ID, 'paycard-btn')))
     submit_button.click()
+
+    # Proceed to next page
+    print('Proceeding to next page...\n')
+    time.sleep(3)
+
+    proceed_btn = wait.until(EC.visibility_of_element_located((By.ID, 'avs-vbv-btn')))
+    proceed_btn.click()
+
+    # Switch to card issuer iframe. sleep 3secs
+    print('Switcing to card issuer...\n')
+    # time.sleep(3)
+
+    # Select and switch to card issuer iframe (second frame)
+    card_issuer_iframe = wait.until(EC.visibility_of_element_located((By.ID, '_3dseciframe')))
+    if card_issuer_iframe:
+        browser.switch_to.frame(card_issuer_iframe)
+
+        otp_token = wait.until(EC.visibility_of_element_located((By.ID, 'RadioButton1')))
+        checkbox = wait.until(EC.visibility_of_element_located((By.NAME, 'terms')))
+
+        if otp_token.get_attribute('type') == 'radio' and checkbox.get_attribute('type') == 'checkbox':
+            otp_token.click()
+            checkbox.click()
+
+        send_otp = wait.until(EC.visibility_of_element_located((By.NAME, 'sendotp')))
+        send_otp.click()
+        print('\bSending OTP via SMS')
+
+    """
+    NEXT: *Fix exception on 'send_otp' btn and extract otp code from SMS.
+          * Switch to default: browser.switch_to.default_content().
+          * Quite.
+    """
+
+
+
+
+
+
+
+
+
+
+
+
+
